@@ -140,7 +140,50 @@ export class SensorsInfo {
       validateFindCommand('findSensorTypes', req);
     if (!validResult.isOk) return validResult;
     //TODO
-    return Errors.okResult([]);
+    // Initialize an array to store candidate sensor types
+    let candidateSensorTypes: SensorType[] = Object.values(this.sensorTypes);
+
+    // If the request specifies the id field, filter the list to have only one element
+    if (req.id) {
+      candidateSensorTypes = candidateSensorTypes.filter((sensorType) => sensorType.id === req.id);
+    }
+
+    // Filter the candidate sensor types using other specified fields in the request
+    if (req.manufacturer) {
+      candidateSensorTypes = candidateSensorTypes.filter((sensorType) => 
+      sensorType.manufacturer === req.manufacturer);
+    }
+  
+    if (req.modelNumber) {
+      candidateSensorTypes = candidateSensorTypes.filter((sensorType) => 
+      sensorType.modelNumber === req.modelNumber);
+    }
+  
+    if (req.quantity) {
+      candidateSensorTypes = candidateSensorTypes.filter((sensorType) => 
+      sensorType.quantity === req.quantity);
+    }
+  
+    if (req.unit) {
+      candidateSensorTypes = candidateSensorTypes.filter((sensorType) => 
+      sensorType.unit === req.unit);
+    }
+  
+    if (req.min) {
+      candidateSensorTypes = candidateSensorTypes.filter((sensorType) => 
+      sensorType.limits.min === parseFloat(req.min));  
+    }
+  
+    if (req.max) {  
+      candidateSensorTypes = candidateSensorTypes.filter((sensorType) => 
+      sensorType.limits.max === parseFloat(req.max));
+    }
+
+    // Sort the filtered sensor types by ID
+    candidateSensorTypes.sort((a, b) => a.id.localeCompare(b.id));
+
+    return Errors.okResult(candidateSensorTypes);
+
   }
   
   /** Find sensors which satify req. Returns [] if none. 
@@ -149,7 +192,40 @@ export class SensorsInfo {
    */
   findSensors(req: FlatReq) : Errors.Result<Sensor[]> { 
     //TODO
-    return Errors.okResult([]);
+    // Validate the input request using the validateFindCommand function
+    const validResult: Errors.Result<Checked<FlatReq>> =
+  
+    validateFindCommand('findSensors', req);
+
+    if (!validResult.isOk) {
+      return validResult;
+    }
+    
+    // Initialize an empty array to store the filtered sensors
+    const filteredSensors: Sensor[] = [];
+    
+    // Iterate through all sensors
+    for (const sensor of Object.values(this.sensors)) {
+      // Check if the id field is specified and matches the sensor's id
+      if (req.id && sensor.id !== req.id) {
+        continue;
+      }
+      
+      // Check if the sensorTypeId field is specified and matches the sensor's sensorTypeId
+      if (req.sensorTypeId && sensor.sensorTypeId !== req.sensorTypeId) {
+        continue;
+      }
+      
+      // If none of the filters apply, add the sensor to the filtered list  
+      filteredSensors.push(sensor);
+    }
+    
+    
+    // Sort the filtered sensors by sensor id
+    filteredSensors.sort((a, b) => a.id.localeCompare(b.id));
+    
+    return Errors.okResult(filteredSensors);
+  
   }
   
   /** Find sensor readings which satify req. Returns [] if none.  Note
@@ -162,7 +238,23 @@ export class SensorsInfo {
    */
   findSensorReadings(req: FlatReq) : Errors.Result<SensorReading[]> {
     //TODO
-    return Errors.okResult([]);
+    // Validate the input request using the validateFindCommand function
+    const validResult: Errors.Result<Checked<FlatReq>> =
+    validateFindCommand('findSensorReadings', req);
+    if (!validResult.isOk) return validResult;
+
+    const sensorId = req.sensorId;
+
+    // Initialize an array to store candidate readings
+    let candidateReadings: SensorReading[] = this.sensorReadings[sensorId];
+    
+    // Check if the sensorId exists
+    if (!this.sensorReadings[sensorId]) {
+      return Errors.okResult([]); // No readings found for the specified sensor
+    }
+    
+
+    return Errors.okResult(candidateReadings);
   }
   
 }
