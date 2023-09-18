@@ -123,12 +123,32 @@ export class SensorsInfo {
       return Errors.errResult( 'Unknown sensorId.', 'BAD_ID');
     }
 
+    //check if sensor Id already exist
+    const sensorId = sensorReading.sensorId;
+    const timestamp = sensorReading.timestamp;
+
+    // Check if the sensorId exists in the sensor readings
+    if (!this.sensorReadings[sensorId]) {
+      this.sensorReadings[sensorId] = [];
+    }
+
+    // Check if a reading with the same timestamp already exists
+    const existingIndex = this.sensorReadings[sensorId].findIndex((existingReading) => {
+      return existingReading.timestamp === timestamp;
+    });
+  
+    if (existingIndex !== -1) {
+      // Replace the existing reading with the new reading
+      this.sensorReadings[sensorId][existingIndex] = sensorReading;
+    } else {
+      // Add the new reading to the sensor readings
+      this.sensorReadings[sensorId].push(sensorReading);
+    }
+
     // Check if non-numeric fields are actually numeric.
     if (isNaN(Number(req.timestamp)) || isNaN(Number(req.value))) {
       return Errors.errResult( 'Non-numeric timestamp or value fields.', 'BAD_VAL' );
     }
-
-    
 
     return Errors.okResult([sensorReading]);
   }
