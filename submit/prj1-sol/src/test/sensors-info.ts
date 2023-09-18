@@ -446,6 +446,7 @@ describe('sensors', () => {
     it('must find all sensor readings for a particular sensor', () => {
       const sensorId = sensors[0].id;
       const findResult = sensorsInfo.findSensorReadings({sensorId});
+      console.log(findResult);
       assert(findResult.isOk === true);
       const nExpectedResults = specs.nReadingsPerSensor;
       expect(findResult.val).to.have.length(nExpectedResults);

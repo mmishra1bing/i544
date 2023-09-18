@@ -128,6 +128,8 @@ export class SensorsInfo {
       return Errors.errResult( 'Non-numeric timestamp or value fields.', 'BAD_VAL' );
     }
 
+    
+
     return Errors.okResult([sensorReading]);
   }
 
@@ -238,23 +240,53 @@ export class SensorsInfo {
    */
   findSensorReadings(req: FlatReq) : Errors.Result<SensorReading[]> {
     //TODO
+
     // Validate the input request using the validateFindCommand function
     const validResult: Errors.Result<Checked<FlatReq>> =
     validateFindCommand('findSensorReadings', req);
     if (!validResult.isOk) return validResult;
 
-    const sensorId = req.sensorId;
-
-    // Initialize an array to store candidate readings
-    let candidateReadings: SensorReading[] = this.sensorReadings[sensorId];
-    
-    // Check if the sensorId exists
-    if (!this.sensorReadings[sensorId]) {
+    // // Check if the sensorId exists
+    if (req.sensorId && !this.sensorReadings[req.sensorId]) {
       return Errors.okResult([]); // No readings found for the specified sensor
     }
+
+    // const sensorId = req.sensorId;
+
+    console.log("req",req);
+    // // Initialize an array to store candidate readings
+    let candidateReadings: SensorReading[] = this.sensorReadings[req.sensorId];
+    console.log(candidateReadings);
+    
     
 
-    return Errors.okResult(candidateReadings);
+
+    // // Filter the candidate readings based on the timestamp and value criteria
+    // if (req.minTimestamp) {
+    //   candidateReadings = candidateReadings.filter((reading) => {
+    //   return Number(reading.timestamp) >= Number(req.minTimestamp)});
+    // }
+  
+    // if (req.maxTimestamp) {
+    
+    //   candidateReadings = candidateReadings.filter((reading) => {
+    //   return Number(reading.timestamp) <= Number(req.maxTimestamp)});
+  
+    // }
+  
+    // if (req.minValue) {
+    //   candidateReadings = candidateReadings.filter((reading) => {
+    //   return Number(reading.value) >= Number(req.minValue)});
+  
+    // }
+  
+    // if (req.maxValue) {
+    //   candidateReadings = candidateReadings.filter((reading) => {
+    //   return Number(reading.value) <= Number(req.maxValue)});
+  
+    // }
+  
+      return Errors.okResult(candidateReadings);
   }
   
 }
