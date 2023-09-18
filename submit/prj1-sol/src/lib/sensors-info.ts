@@ -271,40 +271,34 @@ export class SensorsInfo {
       return Errors.okResult([]); // No readings found for the specified sensor
     }
 
-    // const sensorId = req.sensorId;
-
-    console.log("req",req);
-    // // Initialize an array to store candidate readings
+    // Initialize an array to store candidate readings
     let candidateReadings: SensorReading[] = this.sensorReadings[req.sensorId];
-    console.log(candidateReadings);
-    
     
 
-
-    // // Filter the candidate readings based on the timestamp and value criteria
-    // if (req.minTimestamp) {
-    //   candidateReadings = candidateReadings.filter((reading) => {
-    //   return Number(reading.timestamp) >= Number(req.minTimestamp)});
-    // }
+    // Filter the candidate readings based on the timestamp and value criteria
+    if (req.minTimestamp) {
+      candidateReadings = candidateReadings.filter((reading) => {
+      return Number(reading.timestamp) >= Number(req.minTimestamp)});
+    }
   
-    // if (req.maxTimestamp) {
+    if (req.maxTimestamp) {
     
-    //   candidateReadings = candidateReadings.filter((reading) => {
-    //   return Number(reading.timestamp) <= Number(req.maxTimestamp)});
+      candidateReadings = candidateReadings.filter((reading) => {
+      return Number(reading.timestamp) <= Number(req.maxTimestamp)});
   
-    // }
+    }
   
-    // if (req.minValue) {
-    //   candidateReadings = candidateReadings.filter((reading) => {
-    //   return Number(reading.value) >= Number(req.minValue)});
+    if (req.minValue) {
+      candidateReadings = candidateReadings.filter((reading) => {
+      return Number(reading.value) >= Number(req.minValue)});
   
-    // }
+    }
   
-    // if (req.maxValue) {
-    //   candidateReadings = candidateReadings.filter((reading) => {
-    //   return Number(reading.value) <= Number(req.maxValue)});
+    if (req.maxValue) {
+      candidateReadings = candidateReadings.filter((reading) => {
+      return Number(reading.value) <= Number(req.maxValue)});
   
-    // }
+    }
   
       return Errors.okResult(candidateReadings);
   }
