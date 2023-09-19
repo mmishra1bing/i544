@@ -276,28 +276,20 @@ export class SensorsInfo {
     
 
     // Filter the candidate readings based on the timestamp and value criteria
-    if (req.minTimestamp) {
+    if (req.minTimestamp && req.maxTimestamp ) {
       candidateReadings = candidateReadings.filter((reading) => {
-      return Number(reading.timestamp) >= Number(req.minTimestamp)});
-    }
-  
-    if (req.maxTimestamp) {
-    
-      candidateReadings = candidateReadings.filter((reading) => {
-      return Number(reading.timestamp) <= Number(req.maxTimestamp)});
-  
+      return Number(reading.timestamp) >= Number(req.minTimestamp) && 
+      Number(reading.timestamp) <= Number(req.maxTimestamp)});
     }
   
     if (req.minValue) {
       candidateReadings = candidateReadings.filter((reading) => {
       return Number(reading.value) >= Number(req.minValue)});
-  
     }
   
     if (req.maxValue) {
       candidateReadings = candidateReadings.filter((reading) => {
       return Number(reading.value) <= Number(req.maxValue)});
-  
     }
   
       return Errors.okResult(candidateReadings);
