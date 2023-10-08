@@ -81,7 +81,6 @@ export class SensorsDao {
       // Handle any errors that occur during the closing process
       return Errors.errResult(e.message, 'DB');
     }
-    // return Errors.errResult('todo', 'TODO');
   }
 
   /** Clear out all sensor info in this database
@@ -154,6 +153,7 @@ export class SensorsDao {
           { code: 'EXISTS', sensorId: sensor.id }
         );
       }
+
       const result = await this.sensorCollection.insertOne(sensor);
       
       if (result.insertedId) {
@@ -175,20 +175,36 @@ export class SensorsDao {
   async addSensorReading(sensorReading: SensorReading)
     : Promise<Errors.Result<SensorReading>> 
   {
+
     try {
-      const { sensorId, timestamp } = sensorReading;
+      // Check if a sensor reading with the same sensor ID and timestamp already exists
+      const existingSensorReading = await this.sensorReadingCollection.findOne({
+        sensorId: sensorReading.sensorId,
+        timestamp: sensorReading.timestamp,
+      });
   
-      // Check if a reading with the same sensorId and timestamp already exists
-      const existingReading = await this.sensorCollection.findOne({ sensorId, timestamp });
-  
-      if (existingReading) {
-        const errorMessage = `Sensor reading for sensor ID '${sensorId}' and timestamp '${timestamp}' already exists.`;
-        return Errors.errResult(errorMessage, { code: 'EXISTS', sensorId, timestamp });
+      if (existingSensorReading) {
+        return Errors.errResult(
+          `Sensor reading for sensor ID '${sensorReading.sensorId}' at timestamp '${sensorReading.timestamp}' already exists.`,
+          { code: 'EXISTS', sensorReadingId: sensorReading.sensorId }
+        );
       }
       
+
+      // Explicitly set the ID before inserting
+      const sensorReadingWithId = { ...sensorReading, };
+  
+      // Insert the new sensor reading into the collection
+      const result = await this.sensorReadingCollection.insertOne(sensorReadingWithId);
+  
+      if (result.insertedId) {
+        // Return the added sensor reading with the generated ID
+        return Errors.okResult(sensorReadingWithId);
+      } else {
         return Errors.errResult('Failed to add sensor reading to the database.', 'DB');
-    } catch (error) {
-      return Errors.errResult(error.message, 'DB');
+      }
+    } catch (e) {
+      return Errors.errResult(e.message, 'DB');
     }
 
   }
@@ -223,7 +239,7 @@ export class SensorsDao {
       }
   
       // Find sensor types that match the query
-      const sensorTypes = await this.sensorTypeCollection.find(query).toArray();
+      const sensorTypes = await this.sensorTypeCollection.find(query).sort({ id: 1 }).toArray();
   
       return Errors.okResult(sensorTypes);
     } catch (e) {
@@ -272,8 +288,30 @@ export class SensorsDao {
   async findSensorReadings(search: SensorReadingSearch)
     : Promise<Errors.Result<SensorReading[]>> 
   {
-    return Errors.errResult('todo', 'TODO');
-
+    try {
+      const query: Record<string, any> = {};
+      // Add search criteria to the query based on the provided filters
+      
+      if (search.sensorId) {
+        query.sensorId = search.sensorId;
+      }
+      
+      if (search.minTimestamp && search.maxTimestamp) {
+        query.timestamp = { $gte: search.minTimestamp, $lte: search.maxTimestamp };
+      }
+  
+      if (search.minValue && search.maxValue) {
+        query.value = { $gte: search.minValue, $lte: search.maxValue };
+      } else if (search.minValue) {
+        query.value = { $gte: search.minValue };
+      }
+      
+      const readings = await this.sensorReadingCollection.find(query).sort({ timestamp: 1 }).toArray();
+  
+      return Errors.okResult(readings);
+    } catch (e) {
+      return Errors.errResult(e.message, 'DB');
+    }
   }
   
 } //SensorsDao
