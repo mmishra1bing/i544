@@ -28,10 +28,19 @@ const MONGO_OPTIONS = {
 };
 
 export class SensorsDao {
-
+  private readonly client: mongo.MongoClient;
+  private readonly sensorTypeCollection: mongo.Collection<SensorType>;
+  private readonly sensorCollection: mongo.Collection<Sensor>;
+  private readonly sensorReadingCollection: mongo.Collection<SensorReading>;
   
-  private constructor() {
+  private constructor(client: mongo.MongoClient, sensorTypeCollection: mongo.Collection<SensorType>,
+    sensorCollection: mongo.Collection<Sensor>, 
+    sensorReadingCollection: mongo.Collection<SensorReading>) {
     //TODO
+    this.client = client;
+    this.sensorTypeCollection = sensorTypeCollection;
+    this.sensorCollection = sensorCollection;
+    this.sensorReadingCollection = sensorReadingCollection;
   }
 
   /** factory method
@@ -40,7 +49,22 @@ export class SensorsDao {
    */
   static async make(dbUrl: string) : Promise<Errors.Result<SensorsDao>> {
     //takes care of all async ops, then call constructor
-    return Errors.errResult('todo', 'TODO');
+    try {
+      const client = await (new mongo.MongoClient(dbUrl)).connect();
+      const db = client.db();
+      
+      // Get references to the collections
+      const sensorTypeCollection = db.collection<SensorType>('sensorTypes');
+      const sensorCollection = db.collection<Sensor>('sensors');
+      const sensorReadingCollection = db.collection<SensorReading>('sensorReadings');
+
+      // If the connection and collection retrieval is successful, create a SensorsDao instance
+      return Errors.okResult(new SensorsDao(client, sensorTypeCollection, sensorCollection, sensorReadingCollection ));
+    } catch (e) {
+      // Handle database connection error
+      return Errors.errResult(e.message, 'DB');
+    }
+    // return Errors.errResult('todo', 'TODO');
   }
 
   /** Release all resources held by this dao.
@@ -49,7 +73,15 @@ export class SensorsDao {
    *    DB: a database error was encountered.
    */
   async close() : Promise<Errors.Result<void>> {
-    return Errors.errResult('todo', 'TODO');
+    try {
+      // Close the MongoDB client connection
+      await this.client.close();
+      return Errors.VOID_RESULT;
+    } catch (e) {
+      // Handle any errors that occur during the closing process
+      return Errors.errResult(e.message, 'DB');
+    }
+    // return Errors.errResult('todo', 'TODO');
   }
 
   /** Clear out all sensor info in this database
@@ -57,7 +89,17 @@ export class SensorsDao {
    *    DB: a database error was encountered.
    */
   async clear() : Promise<Errors.Result<void>> {
-    return Errors.errResult('todo', 'TODO');
+    try {
+      // Delete all documents from the 'sensorTypes' and 'sensors' collections
+      await this.sensorTypeCollection.deleteMany({})
+      await this.sensorCollection.deleteMany({});
+      return Errors.VOID_RESULT;
+    } catch (e) {
+      // Handle any errors that occur during the database clearing process
+      return Errors.errResult(e.message, 'DB');
+    }
+
+    // return Errors.errResult('todo', 'TODO');
   }
 
 
@@ -69,7 +111,34 @@ export class SensorsDao {
   async addSensorType(sensorType: SensorType)
     : Promise<Errors.Result<SensorType>>
   {
-    return Errors.errResult('todo', 'TODO');
+    
+    try {
+      // Check if a sensor type with the same ID already exists
+      const existingSensorType = await this.sensorTypeCollection.findOne({ id: sensorType.id });
+      if (existingSensorType) {
+        return Errors.errResult(
+          `Sensor type with ID '${sensorType.id}' already exists.`,
+          { code: 'EXISTS', sensorTypeId: sensorType.id }
+        );
+      }
+  
+      // Insert the new sensor type into the collection
+      const result = await this.sensorTypeCollection.insertOne(sensorType);
+  
+      // Check if the insertion was successful
+      if (result.insertedId) {
+        // Return the added sensor type without the _id field
+        const addedSensorType: SensorType = {...sensorType,};
+       
+        return Errors.okResult(addedSensorType);
+      } else {
+        return Errors.errResult('Failed to add sensor type to the database.', 'DB');
+      }
+    } catch (e) {
+      return Errors.errResult(e.message, 'DB');
+    }
+
+    // return Errors.errResult('todo', 'TODO');
   }
 
   /** Add sensor to this database.
@@ -78,7 +147,27 @@ export class SensorsDao {
    *    DB: a database error was encountered.
    */
   async addSensor(sensor: Sensor) : Promise<Errors.Result<Sensor>> {
-    return Errors.errResult('todo', 'TODO');
+    try {
+      // Check if a sensor with the same ID already exists
+      const existingSensor = await this.sensorCollection.findOne({ id: sensor.id });
+      if (existingSensor) {
+        return Errors.errResult(
+          `Sensor with ID '${sensor.id}' already exists.`,
+          { code: 'EXISTS', sensorId: sensor.id }
+        );
+      }
+      const result = await this.sensorCollection.insertOne(sensor);
+      
+      if (result.insertedId) {
+        const addedSensor: Sensor = {...sensor,};
+        return Errors.okResult(addedSensor);
+      } else {
+        return Errors.errResult('Failed to add sensor to the database.', 'DB');
+      }
+    } catch (e) {
+      return Errors.errResult(e.message, 'DB');
+    }
+    // return Errors.errResult('todo', 'TODO');
   }
 
   /** Add sensorReading to this database.
@@ -89,6 +178,7 @@ export class SensorsDao {
   async addSensorReading(sensorReading: SensorReading)
     : Promise<Errors.Result<SensorReading>> 
   {
+    
     return Errors.errResult('todo', 'TODO');
   }
 
@@ -101,6 +191,7 @@ export class SensorsDao {
   async findSensorTypes(search: SensorTypeSearch)
     : Promise<Errors.Result<SensorType[]>> 
   {
+
     return Errors.errResult('todo', 'TODO');
   }
   
@@ -111,6 +202,7 @@ export class SensorsDao {
    *    DB: a database error was encountered.
    */
   async findSensors(search: SensorSearch) : Promise<Errors.Result<Sensor[]>> {
+    
     return Errors.errResult('todo', 'TODO');
   }
 
@@ -122,6 +214,7 @@ export class SensorsDao {
   async findSensorReadings(search: SensorReadingSearch)
     : Promise<Errors.Result<SensorReading[]>> 
   {
+
     return Errors.errResult('todo', 'TODO');
   }
   
