@@ -99,7 +99,6 @@ export class SensorsDao {
       return Errors.errResult(e.message, 'DB');
     }
 
-    // return Errors.errResult('todo', 'TODO');
   }
 
 
@@ -138,7 +137,6 @@ export class SensorsDao {
       return Errors.errResult(e.message, 'DB');
     }
 
-    // return Errors.errResult('todo', 'TODO');
   }
 
   /** Add sensor to this database.
@@ -167,7 +165,6 @@ export class SensorsDao {
     } catch (e) {
       return Errors.errResult(e.message, 'DB');
     }
-    // return Errors.errResult('todo', 'TODO');
   }
 
   /** Add sensorReading to this database.
@@ -178,8 +175,22 @@ export class SensorsDao {
   async addSensorReading(sensorReading: SensorReading)
     : Promise<Errors.Result<SensorReading>> 
   {
-    
-    return Errors.errResult('todo', 'TODO');
+    try {
+      const { sensorId, timestamp } = sensorReading;
+  
+      // Check if a reading with the same sensorId and timestamp already exists
+      const existingReading = await this.sensorCollection.findOne({ sensorId, timestamp });
+  
+      if (existingReading) {
+        const errorMessage = `Sensor reading for sensor ID '${sensorId}' and timestamp '${timestamp}' already exists.`;
+        return Errors.errResult(errorMessage, { code: 'EXISTS', sensorId, timestamp });
+      }
+      
+        return Errors.errResult('Failed to add sensor reading to the database.', 'DB');
+    } catch (error) {
+      return Errors.errResult(error.message, 'DB');
+    }
+
   }
 
   /** Find sensor-types which satify search. Returns [] if none. 
@@ -191,8 +202,34 @@ export class SensorsDao {
   async findSensorTypes(search: SensorTypeSearch)
     : Promise<Errors.Result<SensorType[]>> 
   {
+    try {
+      const query: Record<string, any> = {};
+  
+      // Add search criteria to the query based on the provided filters
+      if (search.id) {
+        query.id = search.id;
+      }
+      if (search.manufacturer) {
+        query.manufacturer = search.manufacturer;
+      }
+      if (search.modelNumber) {
+        query.modelNumber = search.modelNumber;
+      }
+      if (search.quantity) {
+        query.quantity = search.quantity;
+      }
+      if (search.unit) {
+        query.unit = search.unit;
+      }
+  
+      // Find sensor types that match the query
+      const sensorTypes = await this.sensorTypeCollection.find(query).toArray();
+  
+      return Errors.okResult(sensorTypes);
+    } catch (e) {
+      return Errors.errResult(e.message, 'DB');
+    }
 
-    return Errors.errResult('todo', 'TODO');
   }
   
   /** Find sensors which satify search. Returns [] if none. 
@@ -201,9 +238,30 @@ export class SensorsDao {
    *  Error Codes: 
    *    DB: a database error was encountered.
    */
-  async findSensors(search: SensorSearch) : Promise<Errors.Result<Sensor[]>> {
-    
-    return Errors.errResult('todo', 'TODO');
+  async findSensors(search: SensorSearch) : Promise<Errors.Result<Sensor[]>> 
+  {
+    try {
+      // Initialize an empty query object
+      const query: Record<string, any> = {};
+  
+      // Add search criteria to the query based on the provided filters
+      if (search.sensorTypeId) {
+        query.sensorTypeId = search.sensorTypeId;
+      }
+      if (search.id) {
+        query.id = search.id;
+      }
+
+      // Find sensors that match the query and sort them by sensor-type id
+      const sensors = await this.sensorCollection.find(query).sort({ id: 1 }).toArray();
+  
+      // Return the matching sensors
+      return Errors.okResult(sensors);
+    } catch (e) {
+      // Handle any database error by returning an error result with the code 'DB'
+      return Errors.errResult(e.message, 'DB');
+    }
+
   }
 
   /** Find sensor readings which satisfy search. Returns [] if none. 
@@ -214,8 +272,8 @@ export class SensorsDao {
   async findSensorReadings(search: SensorReadingSearch)
     : Promise<Errors.Result<SensorReading[]>> 
   {
-
     return Errors.errResult('todo', 'TODO');
+
   }
   
 } //SensorsDao
