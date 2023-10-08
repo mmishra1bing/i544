@@ -111,8 +111,9 @@ export class SensorsDao {
   {
     
     try {
+      const collection = this.sensorTypeCollection;
       // Check if a sensor type with the same ID already exists
-      const existingSensorType = await this.sensorTypeCollection.findOne({ id: sensorType.id });
+      const existingSensorType = await collection.findOne({id: sensorType.id });
       if (existingSensorType) {
         return Errors.errResult(
           `Sensor type with ID '${sensorType.id}' already exists.`,
@@ -126,7 +127,7 @@ export class SensorsDao {
       // Check if the insertion was successful
       if (result.insertedId) {
         // Return the added sensor type without the _id field
-        const addedSensorType: SensorType = {...sensorType,};
+        const addedSensorType: SensorType = {...sensorType, };
        
         return Errors.okResult(addedSensorType);
       } else {
@@ -145,19 +146,21 @@ export class SensorsDao {
    */
   async addSensor(sensor: Sensor) : Promise<Errors.Result<Sensor>> {
     try {
+      const collection = this.sensorTypeCollection;
       // Check if a sensor with the same ID already exists
-      const existingSensor = await this.sensorCollection.findOne({ id: sensor.id });
+      const existingSensor = await collection.findOne({ id: sensor.id });
       if (existingSensor) {
         return Errors.errResult(
           `Sensor with ID '${sensor.id}' already exists.`,
           { code: 'EXISTS', sensorId: sensor.id }
         );
+
       }
 
       const result = await this.sensorCollection.insertOne(sensor);
       
       if (result.insertedId) {
-        const addedSensor: Sensor = {...sensor,};
+        const addedSensor: Sensor = {...sensor, };
         return Errors.okResult(addedSensor);
       } else {
         return Errors.errResult('Failed to add sensor to the database.', 'DB');
@@ -177,8 +180,9 @@ export class SensorsDao {
   {
 
     try {
+      const collection = this.sensorTypeCollection;
       // Check if a sensor reading with the same sensor ID and timestamp already exists
-      const existingSensorReading = await this.sensorReadingCollection.findOne({
+      const existingSensorReading = await collection.findOne({
         sensorId: sensorReading.sensorId,
         timestamp: sensorReading.timestamp,
       });
@@ -190,14 +194,12 @@ export class SensorsDao {
         );
       }
       
-
-      // Explicitly set the ID before inserting
-      const sensorReadingWithId = { ...sensorReading, };
   
       // Insert the new sensor reading into the collection
-      const result = await this.sensorReadingCollection.insertOne(sensorReadingWithId);
+      const result = await this.sensorReadingCollection.insertOne(sensorReading);
   
       if (result.insertedId) {
+        const sensorReadingWithId = { ...sensorReading,};
         // Return the added sensor reading with the generated ID
         return Errors.okResult(sensorReadingWithId);
       } else {
