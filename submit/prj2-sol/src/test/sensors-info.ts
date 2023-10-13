@@ -105,7 +105,12 @@ describe('sensors', () => {
     });
 
     it('must error EXISTS on duplicate sensor', async () => {
-      assert.fail('TODO');
+      const addResult1 = await sensorsInfo.addSensor(DATA.SENSOR1);
+      assert(addResult1.isOk === true);
+      const addResult2 = await sensorsInfo.addSensor(DATA.SENSOR1);
+      assert(addResult2.isOk === false);
+      expect(addResult2.errors[0].options.code).to.equal('EXISTS');
+      // assert.fail('TODO');
     });
 
     it ('must detect missing required fields', async () => {
@@ -195,7 +200,12 @@ describe('sensors', () => {
     });
 
     it('must error EXISTS on duplicate sensor reading', async () => {
-      assert.fail('TODO');
+      const addResult1 = await sensorsInfo.addSensorReading(DATA.SENSOR_READING1);
+      assert(addResult1.isOk === true);
+      const addResult2 = await sensorsInfo.addSensorReading(DATA.SENSOR_READING1);
+      assert(addResult2.isOk === false);
+      expect(addResult2.errors[0].options.code).to.equal('EXISTS');
+      // assert.fail('TODO');
     });
 
     it ('must detect missing required fields', async () => {

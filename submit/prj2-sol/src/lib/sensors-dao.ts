@@ -1,3 +1,4 @@
+import { Console } from 'console';
 import { SensorType, Sensor, SensorReading,
 	 SensorTypeSearch, SensorSearch, SensorReadingSearch,
        } from './validators.js';
@@ -109,27 +110,34 @@ export class SensorsDao {
   async addSensorType(sensorType: SensorType)
     : Promise<Errors.Result<SensorType>>
   {
-    
+
+
     try {
+
       const collection = this.sensorTypeCollection;
+      const projection = { _id: false };
       // Check if a sensor type with the same ID already exists
-      const existingSensorType = await collection.findOne({id: sensorType.id });
+      const existingSensorType = await collection.findOne({id: sensorType.id }, {projection});
+
       if (existingSensorType) {
         return Errors.errResult(
           `Sensor type with ID '${sensorType.id}' already exists.`,
-          { code: 'EXISTS', sensorTypeId: sensorType.id }
+          { code: 'EXISTS'}
         );
       }
-  
+
       // Insert the new sensor type into the collection
-      const result = await this.sensorTypeCollection.insertOne(sensorType);
-  
-      // Check if the insertion was successful
+      const result = await collection.insertOne(sensorType);
+
       if (result.insertedId) {
-        // Return the added sensor type without the _id field
-        const addedSensorType: SensorType = {...sensorType, };
-       
-        return Errors.okResult(addedSensorType);
+        // Get the added sensor type from the database
+        const addedSensorType = await collection.findOne({ id: sensorType.id }, { projection });
+  
+        if (addedSensorType) {
+          return Errors.okResult(addedSensorType);
+        } else {
+          return Errors.errResult('Failed to retrieve added sensor type from the database.', 'DB');
+        }
       } else {
         return Errors.errResult('Failed to add sensor type to the database.', 'DB');
       }
@@ -146,28 +154,38 @@ export class SensorsDao {
    */
   async addSensor(sensor: Sensor) : Promise<Errors.Result<Sensor>> {
     try {
-      const collection = this.sensorTypeCollection;
+      const collection = this.sensorCollection;
+      const projection = { _id: false };
       // Check if a sensor with the same ID already exists
-      const existingSensor = await collection.findOne({ id: sensor.id });
+      const existingSensor = await collection.findOne({ id: sensor.id }, {projection});
+
       if (existingSensor) {
+        
         return Errors.errResult(
+          
           `Sensor with ID '${sensor.id}' already exists.`,
-          { code: 'EXISTS', sensorId: sensor.id }
+          { code: 'EXISTS'}
         );
 
       }
 
-      const result = await this.sensorCollection.insertOne(sensor);
+      const result = await collection.insertOne(sensor);
       
       if (result.insertedId) {
-        const addedSensor: Sensor = {...sensor, };
-        return Errors.okResult(addedSensor);
+        // Get the added sensor from the database
+        const addedSensor = await collection.findOne({ id: sensor.id }, { projection });
+        if(addedSensor){
+          return Errors.okResult(addedSensor);
+        }else{
+          return Errors.errResult('Failed to retrieve added sensor type from the database.', 'DB');
+        }
       } else {
         return Errors.errResult('Failed to add sensor to the database.', 'DB');
       }
     } catch (e) {
       return Errors.errResult(e.message, 'DB');
     }
+
   }
 
   /** Add sensorReading to this database.
@@ -180,34 +198,45 @@ export class SensorsDao {
   {
 
     try {
-      const collection = this.sensorTypeCollection;
+      const collection = this.sensorReadingCollection;
+      const projection = { _id: false };
       // Check if a sensor reading with the same sensor ID and timestamp already exists
       const existingSensorReading = await collection.findOne({
         sensorId: sensorReading.sensorId,
         timestamp: sensorReading.timestamp,
-      });
+      }, {projection});
   
       if (existingSensorReading) {
         return Errors.errResult(
           `Sensor reading for sensor ID '${sensorReading.sensorId}' at timestamp '${sensorReading.timestamp}' already exists.`,
-          { code: 'EXISTS', sensorReadingId: sensorReading.sensorId }
+          { code: 'EXISTS' }
         );
       }
       
   
       // Insert the new sensor reading into the collection
-      const result = await this.sensorReadingCollection.insertOne(sensorReading);
+      const result = await collection.insertOne(sensorReading);
   
       if (result.insertedId) {
-        const sensorReadingWithId = { ...sensorReading,};
-        // Return the added sensor reading with the generated ID
-        return Errors.okResult(sensorReadingWithId);
+        // Get the added sensor reading from the database
+        const sensorReadingWithId = await collection.findOne({
+          sensorId: sensorReading.sensorId,
+          timestamp: sensorReading.timestamp,
+        }, {projection});
+        if(sensorReadingWithId){
+          // Return the added sensor reading with the generated ID
+          return Errors.okResult(sensorReadingWithId);
+        }else{
+          return Errors.errResult('Failed to retrieve added sensor type from the database.', 'DB');
+        }
+        
       } else {
         return Errors.errResult('Failed to add sensor reading to the database.', 'DB');
       }
     } catch (e) {
       return Errors.errResult(e.message, 'DB');
     }
+
 
   }
 
