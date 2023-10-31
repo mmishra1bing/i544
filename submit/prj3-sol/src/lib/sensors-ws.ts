@@ -30,6 +30,8 @@ type ServeRet = {
 type SERVER_OPTIONS = {
   base?: string,
 };
+
+
     
 export function serve(model: SensorsInfo, options: SERVER_OPTIONS={})
   : ServeRet
@@ -58,6 +60,24 @@ function setupRoutes(app: Express.Application) {
 
   //TODO: add routes
 
+
+
+    // Sensor-type Routes 
+    // app.get(`${base}/sensor-types/:id`, getSensorTypeById(app));
+    app.put(`${base}/sensor-types`, addSensorType(app));
+    // app.get(`${base}/sensor-types`, findSensorTypes(app));
+
+
+    // Sensors Routes 
+    // app.get(`${base}/sensors/:id`, getSensorById(app));
+    app.put(`${base}/sensors`, createSensor(app));
+    // app.get(`${base}/sensors`, findSensors(app));
+
+    // Sensor-Reading Routes 
+    app.put(`${base}/sensor-readings`, createSensorReading(app));
+    // app.get(`${base}/sensor-readings`, findSensorReadings(app));
+
+
   //must be last
   app.use(do404(app));  //custom handler for page not found
   app.use(doErrors(app)); //custom handler for internal errors
@@ -72,6 +92,79 @@ function doTrace(app: Express.Application) {
     next();
   });
 }
+
+
+
+
+function addSensorType(app: Express.Application) {
+  return (async function(req: Express.Request, res: Express.Response) {
+    try {
+
+      // Add the new sensor type to the data source (e.g., database).
+      const result = await app.locals.sensorsInfo.addSensorType(req.body);
+      if (!result.isOk) throw result;
+
+      const addedSensorType = result.val;
+      const { id } = addedSensorType; 
+      res.location(selfHref(req, id));
+
+      const response = selfResult<SensorType>(req, addedSensorType, STATUS.CREATED);
+      res.status(STATUS.CREATED).json(response);
+    }
+    catch(err) {
+      const mapped = mapResultErrors(err);
+      res.status(mapped.status).json(mapped);
+    }
+  });
+}
+
+
+
+
+function createSensor(app: Express.Application) {
+  return async function(req: Express.Request, res: Express.Response) {
+    
+    try {
+    
+      const result = await app.locals.sensorsInfo.addSensor(req.body);
+      if (!result.isOk) throw result;
+
+      const addedSensor = result.val;
+      const { id } = addedSensor;
+      res.location(selfHref(req, id));
+
+      const response = selfResult<Sensor>(req, addedSensor, STATUS.CREATED);
+      res.status(STATUS.CREATED).json(response);
+    } catch (err) {
+      const mapped = mapResultErrors(err);
+      res.status(mapped.status).json(mapped);
+    }
+  };
+}
+
+
+
+function createSensorReading(app: Express.Application) {
+  return async function(req: Express.Request, res: Express.Response) {
+    try {
+
+      const result = await app.locals.sensorsInfo.addSensorReading(req.body);
+      if (!result.isOk) throw result;
+
+      const addedSensorReading = result.val;
+      const { id } = addedSensorReading;
+      res.location(selfHref(req, id));
+
+      const response = selfResult<SensorReading>(req, addedSensorReading, STATUS.CREATED);
+      res.status(STATUS.CREATED).json(response);
+    } catch (err) {
+      const mapped = mapResultErrors(err);
+      res.status(mapped.status).json(mapped);
+    }
+  };
+}
+
+
 
 
 /** Default handler for when there is no route for a particular method
