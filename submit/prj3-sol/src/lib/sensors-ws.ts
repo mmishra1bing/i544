@@ -74,7 +74,7 @@ function setupRoutes(app: Express.Application) {
 
     // Sensor-Reading Routes 
     app.put(`${base}/sensor-readings`, createSensorReading(app));
-    // app.get(`${base}/sensor-readings`, findSensorReadings(app));
+    app.get(`${base}/sensor-readings`, findSensorReadings(app));
 
 
   //must be last
@@ -189,10 +189,6 @@ function findSensors(app: Express.Application) {
 }
 
 
-
-
-
-
 function createSensorReading(app: Express.Application) {
   return async function(req: Express.Request, res: Express.Response) {
     try {
@@ -212,6 +208,32 @@ function createSensorReading(app: Express.Application) {
     }
   };
 }
+
+
+function findSensorReadings(app: Express.Application) {
+  return async (req: Express.Request, res: Express.Response) => {
+      try {
+          const q = { ...req.query };
+          const count = Number(q.count ?? DEFAULT_COUNT);
+          
+          // Adjust the query to request one extra result to determine if there are more than count remaining results
+          const q1 = { ...q, count: count + 1 };
+
+          // Call the service method on sensorsInfo
+          const result = await app.locals.sensorsInfo.findSensorReadings(q1);
+
+          if (!result.isOk) throw result;
+
+          const response = pagedResult<SensorReading>(req, 'value', result.val);
+          res.json(response);
+      } catch (err) {
+          const mapped = mapResultErrors(err);
+          res.status(mapped.status).json(mapped);
+      }
+  };
+}
+
+
 
 
 
