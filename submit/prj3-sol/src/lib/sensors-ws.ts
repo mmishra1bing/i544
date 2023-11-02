@@ -61,17 +61,16 @@ function setupRoutes(app: Express.Application) {
   //TODO: add routes
 
 
-
     // Sensor-type Routes 
     // app.get(`${base}/sensor-types/:id`, getSensorTypeById(app));
     app.put(`${base}/sensor-types`, addSensorType(app));
-    // app.get(`${base}/sensor-types`, findSensorTypes(app));
+    app.get(`${base}/sensor-types`, findSensorTypes(app));
 
 
     // Sensors Routes 
     // app.get(`${base}/sensors/:id`, getSensorById(app));
     app.put(`${base}/sensors`, createSensor(app));
-    // app.get(`${base}/sensors`, findSensors(app));
+    app.get(`${base}/sensors`, findSensors(app));
 
     // Sensor-Reading Routes 
     app.put(`${base}/sensor-readings`, createSensorReading(app));
@@ -92,8 +91,6 @@ function doTrace(app: Express.Application) {
     next();
   });
 }
-
-
 
 
 function addSensorType(app: Express.Application) {
@@ -119,6 +116,31 @@ function addSensorType(app: Express.Application) {
 }
 
 
+function findSensorTypes(app: Express.Application) {
+  return (async function(req: Express.Request, res: Express.Response) {
+    try {
+      const q = { ...req.query };
+      const count = Number(q.count ?? DEFAULT_COUNT);
+
+      // By requesting one extra result, we ensure that we generate the
+      // next link only if there are more than count remaining results
+      const q1 = { ...q, count: count + 1 };
+
+      // Call the findSensorTypes service
+      const result = await app.locals.sensorsInfo.findSensorTypes(q1);
+
+      if (!result.isOk) throw result;
+
+      // Adjust the second parameter based on the unique ID of your SensorType, if different
+      const response = pagedResult<SensorType>(req, 'id', result.val);  
+      res.json(response);
+    } catch (err) {
+      const mapped = mapResultErrors(err);
+      res.status(mapped.status).json(mapped);
+    }
+  });
+}
+
 
 
 function createSensor(app: Express.Application) {
@@ -141,6 +163,33 @@ function createSensor(app: Express.Application) {
     }
   };
 }
+
+
+function findSensors(app: Express.Application) {
+  return (async function(req: Express.Request, res: Express.Response) {
+    try {
+      const q = { ...req.query };
+      const count = Number(q.count ?? DEFAULT_COUNT);
+
+
+      const q1 = { ...q, count: count + 1 };
+
+      // Call the findSensorTypes service
+      const result = await app.locals.sensorsInfo.findSensors(q1);
+
+      if (!result.isOk) throw result;
+
+      const response = pagedResult<Sensor>(req, 'id', result.val); 
+      res.json(response);
+    } catch (err) {
+      const mapped = mapResultErrors(err);
+      res.status(mapped.status).json(mapped);
+    }
+  });
+}
+
+
+
 
 
 
