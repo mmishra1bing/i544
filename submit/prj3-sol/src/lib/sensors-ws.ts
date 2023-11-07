@@ -181,12 +181,6 @@ function doGetSensorById(app: Express.Application) {
             throw Errors.errResult('Sensor not found', 'NOT_FOUND');
           }
 
-          // if (!result.isOk) throw result;
-
-          // // Using the selfResult utility function to build the response envelope
-          // const response = selfResult<Sensor>(req, result.val[0]);
-          // res.json(response);
-
       } catch (err) {
           const mapped = mapResultErrors(err);
           res.status(mapped.status).json(mapped);
