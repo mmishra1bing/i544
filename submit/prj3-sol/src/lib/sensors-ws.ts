@@ -62,19 +62,19 @@ function setupRoutes(app: Express.Application) {
 
 
     // Sensor-type Routes 
-    // app.get(`${base}/sensor-types/:id`, getSensorTypeById(app));
-    app.put(`${base}/sensor-types`, addSensorType(app));
-    app.get(`${base}/sensor-types`, findSensorTypes(app));
+    app.get(`${base}/sensor-types/:id`, doGetSensorTypeById(app));
+    app.put(`${base}/sensor-types`, doCreateSensorType(app));
+    app.get(`${base}/sensor-types`, doFindSensorTypes(app));
 
 
     // Sensors Routes 
-    // app.get(`${base}/sensors/:id`, getSensorById(app));
-    app.put(`${base}/sensors`, createSensor(app));
-    app.get(`${base}/sensors`, findSensors(app));
+    app.get(`${base}/sensors/:id`, doGetSensorById(app));
+    app.put(`${base}/sensors`, doCreateSensor(app));
+    app.get(`${base}/sensors`, doFindSensors(app));
 
     // Sensor-Reading Routes 
-    app.put(`${base}/sensor-readings`, createSensorReading(app));
-    app.get(`${base}/sensor-readings`, findSensorReadings(app));
+    app.put(`${base}/sensor-readings`, doCreateSensorReading(app));
+    app.get(`${base}/sensor-readings`, doFindSensorReadings(app));
 
 
   //must be last
@@ -92,8 +92,32 @@ function doTrace(app: Express.Application) {
   });
 }
 
+function doGetSensorTypeById(app: Express.Application) {
+  return async (req: Express.Request, res: Express.Response) => {
+      try {
+          const sensorTypeId = req.params.id;
+          
+          // Call the service method on sensorsInfo
+          const result = await app.locals.sensorsInfo.findSensorTypes(sensorTypeId);
 
-function addSensorType(app: Express.Application) {
+          if (!result.isOk) throw result;
+          if (result.val.length === 0) { // Check if the result is empty
+            return res.status(404).json(result);
+          }
+
+          // Using the selfResult utility function to build the response envelope
+          const response = selfResult<SensorType>(req, result.val[0]);
+            res.json(response);
+
+      } catch (err) {
+          const mapped = mapResultErrors(err);
+          res.status(mapped.status).json(mapped);
+      }
+  };
+}
+
+
+function doCreateSensorType(app: Express.Application) {
   return (async function(req: Express.Request, res: Express.Response) {
     try {
 
@@ -116,7 +140,7 @@ function addSensorType(app: Express.Application) {
 }
 
 
-function findSensorTypes(app: Express.Application) {
+function doFindSensorTypes(app: Express.Application) {
   return (async function(req: Express.Request, res: Express.Response) {
     try {
       const q = { ...req.query };
@@ -142,8 +166,36 @@ function findSensorTypes(app: Express.Application) {
 }
 
 
+function doGetSensorById(app: Express.Application) {
+  return async (req: Express.Request, res: Express.Response) => {
+      try {
 
-function createSensor(app: Express.Application) {
+          const result = await app.locals.sensorsInfo.findSensors({...req.params});
+
+          if (result.isOk && result.val.length > 0) {
+            // Using the selfResult utility function to build the response envelope
+            const response = selfResult<Sensor>(req, result.val[0]);
+            res.json(response);
+          } else {
+            // If result is not OK or val array is empty, throw a NOT_FOUND error
+            throw Errors.errResult('Sensor not found', 'NOT_FOUND');
+          }
+
+          // if (!result.isOk) throw result;
+
+          // // Using the selfResult utility function to build the response envelope
+          // const response = selfResult<Sensor>(req, result.val[0]);
+          // res.json(response);
+
+      } catch (err) {
+          const mapped = mapResultErrors(err);
+          res.status(mapped.status).json(mapped);
+      }
+  };
+}
+
+
+function doCreateSensor(app: Express.Application) {
   return async function(req: Express.Request, res: Express.Response) {
     
     try {
@@ -165,7 +217,7 @@ function createSensor(app: Express.Application) {
 }
 
 
-function findSensors(app: Express.Application) {
+function doFindSensors(app: Express.Application) {
   return (async function(req: Express.Request, res: Express.Response) {
     try {
       const q = { ...req.query };
@@ -189,7 +241,7 @@ function findSensors(app: Express.Application) {
 }
 
 
-function createSensorReading(app: Express.Application) {
+function doCreateSensorReading(app: Express.Application) {
   return async function(req: Express.Request, res: Express.Response) {
     try {
 
@@ -210,7 +262,7 @@ function createSensorReading(app: Express.Application) {
 }
 
 
-function findSensorReadings(app: Express.Application) {
+function doFindSensorReadings(app: Express.Application) {
   return async (req: Express.Request, res: Express.Response) => {
       try {
           const q = { ...req.query };
@@ -232,9 +284,6 @@ function findSensorReadings(app: Express.Application) {
       }
   };
 }
-
-
-
 
 
 
