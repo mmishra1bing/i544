@@ -1,4 +1,3 @@
-import { Console } from 'console';
 import { SensorType, Sensor, SensorReading,
 	 SensorTypeSearch, SensorSearch, SensorReadingSearch,
        } from './validators.js';
@@ -29,19 +28,10 @@ const MONGO_OPTIONS = {
 };
 
 export class SensorsDao {
-  private readonly client: mongo.MongoClient;
-  private readonly sensorTypeCollection: mongo.Collection<SensorType>;
-  private readonly sensorCollection: mongo.Collection<Sensor>;
-  private readonly sensorReadingCollection: mongo.Collection<SensorReading>;
+
   
-  private constructor(client: mongo.MongoClient, sensorTypeCollection: mongo.Collection<SensorType>,
-    sensorCollection: mongo.Collection<Sensor>, 
-    sensorReadingCollection: mongo.Collection<SensorReading>) {
+  private constructor() {
     //TODO
-    this.client = client;
-    this.sensorTypeCollection = sensorTypeCollection;
-    this.sensorCollection = sensorCollection;
-    this.sensorReadingCollection = sensorReadingCollection;
   }
 
   /** factory method
@@ -50,22 +40,7 @@ export class SensorsDao {
    */
   static async make(dbUrl: string) : Promise<Errors.Result<SensorsDao>> {
     //takes care of all async ops, then call constructor
-    try {
-      const client = await (new mongo.MongoClient(dbUrl)).connect();
-      const db = client.db();
-      
-      // Get references to the collections
-      const sensorTypeCollection = db.collection<SensorType>('sensorTypes');
-      const sensorCollection = db.collection<Sensor>('sensors');
-      const sensorReadingCollection = db.collection<SensorReading>('sensorReadings');
-
-      // If the connection and collection retrieval is successful, create a SensorsDao instance
-      return Errors.okResult(new SensorsDao(client, sensorTypeCollection, sensorCollection, sensorReadingCollection ));
-    } catch (e) {
-      // Handle database connection error
-      return Errors.errResult(e.message, 'DB');
-    }
-    // return Errors.errResult('todo', 'TODO');
+    return Errors.errResult('todo', 'TODO');
   }
 
   /** Release all resources held by this dao.
@@ -74,14 +49,7 @@ export class SensorsDao {
    *    DB: a database error was encountered.
    */
   async close() : Promise<Errors.Result<void>> {
-    try {
-      // Close the MongoDB client connection
-      await this.client.close();
-      return Errors.VOID_RESULT;
-    } catch (e) {
-      // Handle any errors that occur during the closing process
-      return Errors.errResult(e.message, 'DB');
-    }
+    return Errors.errResult('todo', 'TODO');
   }
 
   /** Clear out all sensor info in this database
@@ -89,16 +57,7 @@ export class SensorsDao {
    *    DB: a database error was encountered.
    */
   async clear() : Promise<Errors.Result<void>> {
-    try {
-      // Delete all documents from the 'sensorTypes' and 'sensors' collections
-      await this.sensorTypeCollection.deleteMany({})
-      await this.sensorCollection.deleteMany({});
-      return Errors.VOID_RESULT;
-    } catch (e) {
-      // Handle any errors that occur during the database clearing process
-      return Errors.errResult(e.message, 'DB');
-    }
-
+    return Errors.errResult('todo', 'TODO');
   }
 
 
@@ -110,41 +69,7 @@ export class SensorsDao {
   async addSensorType(sensorType: SensorType)
     : Promise<Errors.Result<SensorType>>
   {
-
-
-    try {
-
-      const collection = this.sensorTypeCollection;
-      const projection = { _id: false };
-      // Check if a sensor type with the same ID already exists
-      const existingSensorType = await collection.findOne({id: sensorType.id }, {projection});
-
-      if (existingSensorType) {
-        return Errors.errResult(
-          `Sensor type with ID '${sensorType.id}' already exists.`,
-          { code: 'EXISTS'}
-        );
-      }
-
-      // Insert the new sensor type into the collection
-      const result = await collection.insertOne(sensorType);
-
-      if (result.insertedId) {
-        // Get the added sensor type from the database
-        const addedSensorType = await collection.findOne({ id: sensorType.id }, { projection });
-  
-        if (addedSensorType) {
-          return Errors.okResult(addedSensorType);
-        } else {
-          return Errors.errResult('Failed to retrieve added sensor type from the database.', 'DB');
-        }
-      } else {
-        return Errors.errResult('Failed to add sensor type to the database.', 'DB');
-      }
-    } catch (e) {
-      return Errors.errResult(e.message, 'DB');
-    }
-
+    return Errors.errResult('todo', 'TODO');
   }
 
   /** Add sensor to this database.
@@ -153,39 +78,7 @@ export class SensorsDao {
    *    DB: a database error was encountered.
    */
   async addSensor(sensor: Sensor) : Promise<Errors.Result<Sensor>> {
-    try {
-      const collection = this.sensorCollection;
-      const projection = { _id: false };
-      // Check if a sensor with the same ID already exists
-      const existingSensor = await collection.findOne({ id: sensor.id }, {projection});
-
-      if (existingSensor) {
-        
-        return Errors.errResult(
-          
-          `Sensor with ID '${sensor.id}' already exists.`,
-          { code: 'EXISTS'}
-        );
-
-      }
-
-      const result = await collection.insertOne(sensor);
-      
-      if (result.insertedId) {
-        // Get the added sensor from the database
-        const addedSensor = await collection.findOne({ id: sensor.id }, { projection });
-        if(addedSensor){
-          return Errors.okResult(addedSensor);
-        }else{
-          return Errors.errResult('Failed to retrieve added sensor type from the database.', 'DB');
-        }
-      } else {
-        return Errors.errResult('Failed to add sensor to the database.', 'DB');
-      }
-    } catch (e) {
-      return Errors.errResult(e.message, 'DB');
-    }
-
+    return Errors.errResult('todo', 'TODO');
   }
 
   /** Add sensorReading to this database.
@@ -196,48 +89,7 @@ export class SensorsDao {
   async addSensorReading(sensorReading: SensorReading)
     : Promise<Errors.Result<SensorReading>> 
   {
-
-    try {
-      const collection = this.sensorReadingCollection;
-      const projection = { _id: false };
-      // Check if a sensor reading with the same sensor ID and timestamp already exists
-      const existingSensorReading = await collection.findOne({
-        sensorId: sensorReading.sensorId,
-        timestamp: sensorReading.timestamp,
-      }, {projection});
-  
-      if (existingSensorReading) {
-        return Errors.errResult(
-          `Sensor reading for sensor ID '${sensorReading.sensorId}' at timestamp '${sensorReading.timestamp}' already exists.`,
-          { code: 'EXISTS' }
-        );
-      }
-      
-  
-      // Insert the new sensor reading into the collection
-      const result = await collection.insertOne(sensorReading);
-  
-      if (result.insertedId) {
-        // Get the added sensor reading from the database
-        const sensorReadingWithId = await collection.findOne({
-          sensorId: sensorReading.sensorId,
-          timestamp: sensorReading.timestamp,
-        }, {projection});
-        if(sensorReadingWithId){
-          // Return the added sensor reading with the generated ID
-          return Errors.okResult(sensorReadingWithId);
-        }else{
-          return Errors.errResult('Failed to retrieve added sensor type from the database.', 'DB');
-        }
-        
-      } else {
-        return Errors.errResult('Failed to add sensor reading to the database.', 'DB');
-      }
-    } catch (e) {
-      return Errors.errResult(e.message, 'DB');
-    }
-
-
+    return Errors.errResult('todo', 'TODO');
   }
 
   /** Find sensor-types which satify search. Returns [] if none. 
@@ -249,34 +101,7 @@ export class SensorsDao {
   async findSensorTypes(search: SensorTypeSearch)
     : Promise<Errors.Result<SensorType[]>> 
   {
-    try {
-      const query: Record<string, any> = {};
-  
-      // Add search criteria to the query based on the provided filters
-      if (search.id) {
-        query.id = search.id;
-      }
-      if (search.manufacturer) {
-        query.manufacturer = search.manufacturer;
-      }
-      if (search.modelNumber) {
-        query.modelNumber = search.modelNumber;
-      }
-      if (search.quantity) {
-        query.quantity = search.quantity;
-      }
-      if (search.unit) {
-        query.unit = search.unit;
-      }
-  
-      // Find sensor types that match the query
-      const sensorTypes = await this.sensorTypeCollection.find(query).sort({ id: 1 }).toArray();
-  
-      return Errors.okResult(sensorTypes);
-    } catch (e) {
-      return Errors.errResult(e.message, 'DB');
-    }
-
+    return Errors.errResult('todo', 'TODO');
   }
   
   /** Find sensors which satify search. Returns [] if none. 
@@ -285,30 +110,8 @@ export class SensorsDao {
    *  Error Codes: 
    *    DB: a database error was encountered.
    */
-  async findSensors(search: SensorSearch) : Promise<Errors.Result<Sensor[]>> 
-  {
-    try {
-      // Initialize an empty query object
-      const query: Record<string, any> = {};
-  
-      // Add search criteria to the query based on the provided filters
-      if (search.sensorTypeId) {
-        query.sensorTypeId = search.sensorTypeId;
-      }
-      if (search.id) {
-        query.id = search.id;
-      }
-
-      // Find sensors that match the query and sort them by sensor-type id
-      const sensors = await this.sensorCollection.find(query).sort({ id: 1 }).toArray();
-  
-      // Return the matching sensors
-      return Errors.okResult(sensors);
-    } catch (e) {
-      // Handle any database error by returning an error result with the code 'DB'
-      return Errors.errResult(e.message, 'DB');
-    }
-
+  async findSensors(search: SensorSearch) : Promise<Errors.Result<Sensor[]>> {
+    return Errors.errResult('todo', 'TODO');
   }
 
   /** Find sensor readings which satisfy search. Returns [] if none. 
@@ -319,30 +122,7 @@ export class SensorsDao {
   async findSensorReadings(search: SensorReadingSearch)
     : Promise<Errors.Result<SensorReading[]>> 
   {
-    try {
-      const query: Record<string, any> = {};
-      // Add search criteria to the query based on the provided filters
-      
-      if (search.sensorId) {
-        query.sensorId = search.sensorId;
-      }
-      
-      if (search.minTimestamp && search.maxTimestamp) {
-        query.timestamp = { $gte: search.minTimestamp, $lte: search.maxTimestamp };
-      }
-  
-      if (search.minValue && search.maxValue) {
-        query.value = { $gte: search.minValue, $lte: search.maxValue };
-      } else if (search.minValue) {
-        query.value = { $gte: search.minValue };
-      }
-      
-      const readings = await this.sensorReadingCollection.find(query).sort({ timestamp: 1 }).toArray();
-  
-      return Errors.okResult(readings);
-    } catch (e) {
-      return Errors.errResult(e.message, 'DB');
-    }
+    return Errors.errResult('todo', 'TODO');
   }
   
 } //SensorsDao
