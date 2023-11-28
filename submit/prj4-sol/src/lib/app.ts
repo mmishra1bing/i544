@@ -49,10 +49,12 @@ function setupAddFormListeners(rootId: string, ws:SensorsWs): void{
       //AddSensorType i.e Adding a Sensor Type
       if(rootId==='addSensorType'){
         const result = await ws.addSensorType(formData);
+        console.log(result);
         if (result.isOk) {
           displaySuccessResult(`${rootId}-results`, result.val);
         } else {
-          displayErrors(`${rootId}`, result.errors);
+          console.log("in here");
+          displayErrors(rootId, result.errors);
         }
       }
       //AddSensors i.e Adding a Sensor
@@ -61,12 +63,13 @@ function setupAddFormListeners(rootId: string, ws:SensorsWs): void{
         if (result.isOk) {
           displaySuccessResult(`${rootId}-results`, result.val);
         } else {
-          displayErrors(`${rootId}`, result.errors);
+          
+          displayErrors(rootId, result.errors);
         }
       }
     } catch (error) {
       const errorResult = Errors.errResult(error.message);
-      displayErrors(`${rootId}`, errorResult.errors);
+      displayErrors(rootId, errorResult.errors);
     }
   });
 
@@ -84,7 +87,7 @@ function setupFindFormListeners(rootId: string,ws: SensorsWs): void {
   
   form.addEventListener('submit', async (event) => {
     event.preventDefault();
-    clearErrors(`${rootId}`);
+    clearErrors(rootId);
     const formData = getFormData(form);
       
     try{
@@ -95,7 +98,7 @@ function setupFindFormListeners(rootId: string,ws: SensorsWs): void {
         if (result.isOk) {
           processResult(form,rootId,ws,formData,result);  
         }else{
-          displayErrors(`${rootId}`, result.errors);  
+          displayErrors(rootId, result.errors);  
         }
       }
     
@@ -106,13 +109,13 @@ function setupFindFormListeners(rootId: string,ws: SensorsWs): void {
         if (result.isOk) {
           processResult(form,rootId,ws,formData,result);
         }else{
-          displayErrors(`${rootId}`, result.errors);
+          displayErrors(rootId, result.errors);
         }
       }
     }catch(error){
       const errorResult = Errors.errResult(error.message);
       // Display errors
-      displayErrors(`${rootId}`, errorResult.errors);
+      displayErrors(rootId, errorResult.errors);
     }
     
   });
@@ -305,7 +308,8 @@ function clearErrors(rootId: string) {
  */  
 function displayErrors(rootId: string, errors: Errors.Err[]) {
   for (const err of errors) {
-    const id = err.options.widget;
+    const id = err.options ? err.options.widget : null;
+    console.log("id", id);
     const widget = id && document.querySelector(`#${rootId}-${id}-error`);
     if (widget) {
       widget.append(err.message);
