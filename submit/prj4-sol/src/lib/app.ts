@@ -49,11 +49,9 @@ function setupAddFormListeners(rootId: string, ws:SensorsWs): void{
       //AddSensorType i.e Adding a Sensor Type
       if(rootId==='addSensorType'){
         const result = await ws.addSensorType(formData);
-        console.log(result);
         if (result.isOk) {
           displaySuccessResult(`${rootId}-results`, result.val);
         } else {
-          console.log("in here");
           displayErrors(rootId, result.errors);
         }
       }
@@ -309,7 +307,6 @@ function clearErrors(rootId: string) {
 function displayErrors(rootId: string, errors: Errors.Err[]) {
   for (const err of errors) {
     const id = err.options ? err.options.widget : null;
-    console.log("id", id);
     const widget = id && document.querySelector(`#${rootId}-${id}-error`);
     if (widget) {
       widget.append(err.message);
