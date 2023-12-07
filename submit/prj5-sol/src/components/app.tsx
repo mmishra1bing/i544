@@ -4,12 +4,11 @@ import { makeSensorsWs, SensorsWs } from '../lib/sensors-ws.js';
 
 import Tab from './tab.js';
 import  AddSensorType from './AddSensorType.js'; 
-// import  FindSensorType from './FindSensorType.js'; 
+import  FindSensorType from './FindSensorType.js'; 
 import  AddSensor from './AddSensor.js'; 
-// import  FindSensor from './FindSensor.js'; 
+import  FindSensor from './FindSensor.js'; 
 
 import SENSOR_FIELDS from './sensor-fields.js';
-import FindSensor from './FindSensor.js';
 
 
 type AppProps = {
@@ -36,6 +35,7 @@ export default function App(props: AppProps) {
       <Tab id="findSensorTypes" label="Find Sensor Types" 
            isSelected={selectedId === 'findSensorTypes'}
            select={selectTab}>
+            <FindSensorType ws={ws}/>
          {/* TODO Find Sensor Type Component */}
       </Tab>
       <Tab id="findSensors" label="Find Sensors" 
