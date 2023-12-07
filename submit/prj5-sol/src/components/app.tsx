@@ -9,6 +9,7 @@ import  AddSensor from './AddSensor.js';
 // import  FindSensor from './FindSensor.js'; 
 
 import SENSOR_FIELDS from './sensor-fields.js';
+import FindSensor from './FindSensor.js';
 
 
 type AppProps = {
@@ -40,6 +41,7 @@ export default function App(props: AppProps) {
       <Tab id="findSensors" label="Find Sensors" 
            isSelected={selectedId === 'findSensors'}
            select={selectTab}>
+            <FindSensor ws={ws}/>
          {/* TODO Find Sensor Component */}
       </Tab>
     </div>
