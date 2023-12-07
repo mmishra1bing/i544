@@ -1,116 +1,115 @@
-import React, { useState } from 'react';
+import React from 'react';
+import { useState } from "react";
 import { Errors } from 'cs544-js-utils';
 import { PagedValues, makeSensorsWs, SensorsWs } from '../lib/sensors-ws';
+// import { PagedValues, makeSensorsWs, SensorsWs } from '';
 import SENSOR_DEFS, { FieldDef } from './sensor-fields';
+import FormResult from './FormResult';
 
 type AppProps = {
-  ws: SensorsWs;
+  ws: SensorsWs, // Assuming SensorsWs is the correct type
 };
-
-function SensorFormComponent(props: AppProps) {
+function AddSensorForm(props: AppProps) {
   const { ws } = props;
 
-  const [sensorData, setSensorData] = useState({
+  const [formData, setFormData] = useState({
     id: '',
     sensorTypeId: '',
     period: '',
     min: '',
     max: '',
   });
-
-  const [sensorErrors, setSensorErrors] = useState({
+  const [formErrors, setFormErrors] = useState({
     id: '',
     sensorTypeId: '',
     period: '',
     min: '',
     max: '',
   });
-
-  const [sensorResult, setSensorResult] = useState<Record<string, string>>({});
-
-  const handleInputChangeEvent = (e: React.ChangeEvent<HTMLInputElement>) => {
+  
+  const [formResult, setFormResult] = useState<Record<string, string>>({});
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
 
-    setSensorErrors((prevErrors) => ({ ...prevErrors, [name]: '' }));
-    setSensorData((prevData) => ({ ...prevData, [name]: value }));
+     setFormErrors((prevErrors) => ({
+      ...prevErrors,
+      [name]: '',
+    }));
+    setFormData((prevData) => ({
+      ...prevData,
+      [name]: value,
+    }));
   };
-
-  const validateSensorForm = () => {
+  const validateForm = () => {
     const errors: { [key: string]: string } = {};
-    Object.entries(sensorData).forEach(([key, value]) => {
+    Object.entries(formData).forEach(([key, value]) => {
       if (value.trim() === '') {
         errors[key] = `"${key}" is required`;
       }
     });
-
-    setSensorErrors((prevErrors) => ({ ...prevErrors, ...errors }));
-
+  
+    setFormErrors((prevErrors) => {
+      const newErrors = { ...prevErrors, ...errors };
+      return newErrors;
+    });
+  
     return Object.keys(errors).length === 0;
   };
-
-  const handleFormSubmission = async (ev: React.FormEvent<HTMLFormElement>) => {
-    const rootId = 'sensorForm';
+  
+  const handleFormSubmit = async (ev: React.FormEvent<HTMLFormElement>) => {
+    const rootId = 'addSensor';
     const form = document.getElementById(`${rootId}-form`) as HTMLFormElement;
-
-    if (form) {
+    if(form){
       ev.preventDefault();
-      clearFormErrors('sensorForm');
-      const formDataVal = getFormDataValues(form);
-
+      clearErrors('addSensor');
+      const formDataVal = getFormData(form);
       try {
+        // Wait for the promise to resolve
         const result = await ws.addSensor(formDataVal);
-
-        if (result.isOk) {
-          setSensorResult(result.val);
-        } else {
-          displayFormErrors(rootId, result.errors);
+        if(result.isOk){
+          // <FormResult resultContainerId='addSensor' result={formResult}/>
+          setFormResult(result.val);
         }
-
-        if (validateSensorForm()) {
-          const { id, sensorTypeId, period, min, max } = sensorData;
-          console.log(id, sensorTypeId, period, min, max);
-        } else {
-          console.log('Sensor form has validation errors');
+        else{
+          if(result.errors[0].message==='Failed to fetch'){
+            displayErrors(rootId,result.errors);
+            
+          }else{
+            displayErrors(rootId,result.errors);
+            validateForm();
+          }
         }
       } catch (error) {
-        const errorResult = Errors.errResult('Failed to Fetch');
-        displayFormErrors('sensorForm', errorResult.errors);
+        // Handle any errors that occurred during the promise resolution
+           const errorResult = Errors.errResult('Failed to Fetch');
+           displayErrors('addSensor', errorResult.errors);
       }
-    } else {
-      console.error(`Form with ID sensorForm-form not found.`);
-    }
-  };
-
-  function clearFormErrors(rootId: string) {
+    }else{
+    console.error(`Form with ID ${rootId}-form not found.`);
+  }
+};
+  
+  function clearErrors(rootId: string) {
     document.querySelectorAll(`.${rootId}-errors`).forEach((el) => {
       el.innerHTML = '';
     });
-
-    setSensorErrors(() => ({ id: '', sensorTypeId: '', period: '', min: '', max: '' }));
+  
+    // Clear form errors state using the callback function
+    setFormErrors((prevErrors) => {
+      const newErrors = { ...prevErrors, id: '', sensorTypeId: '', period: '', min: '', max: '' };
+      return newErrors;
+    });
   }
-
-  function getFormDataValues(form: HTMLFormElement): Record<string, string> {
-    const pairs = [...new FormData(form).entries()].map(([k, v]) => [k, v as string]).filter(([_, v]) => v.trim().length > 0);
+  function getFormData(form: HTMLFormElement) : Record<string, string> {
+    const pairs =
+      [...new FormData(form).entries()]
+      .map(([k, v]) => [k, v as string])
+      .filter(([_, v]) => v.trim().length > 0);
     return Object.fromEntries(pairs);
   }
-
-//   function displayFormErrors(rootId: string, errors: Errors.Err[]) {
-//     for (const err of errors) {
-//       const id = err.options.widget;
-//       const widget = id && document.querySelector(`#${rootId}-${id}-error`);
-
-//       if (widget) {
-//         widget.append(err.message);
-//       } else {
-//         const li = createElement('li', { class: 'error' }, err.message);
-//         document.querySelector(`#${rootId}-errors`)!.append(li);
-//       }
-//     }
-//   }
-
-function displayFormErrors(rootId: string, errors: Errors.Err[]) {
+  function displayErrors(rootId: string, errors: Errors.Err[]) {
     for (const err of errors) {
-      const id = err.options ? err.options.widget : null;
+      const id = err.options.widget;
       const widget = id && document.querySelector(`#${rootId}-${id}-error`);
       if (widget) {
         widget.append(err.message);
@@ -121,83 +120,77 @@ function displayFormErrors(rootId: string, errors: Errors.Err[]) {
       }
     }
   }
-
-  function makeElement(tagName: string, attrs: { [attr: string]: string } = {}, text = '') {
-    const element = document.createElement(tagName);
-
-    for (const [k, v] of Object.entries(attrs)) {
+    function makeElement(tagName: string,
+            attrs: {[attr: string]: string} = {},
+            text='')
+      {
+      const element = document.createElement(tagName);
+      for (const [k, v] of Object.entries(attrs)) {
       element.setAttribute(k, v);
-    }
-
-    if (text.length > 0) element.append(text);
-
-    return element;
-  }
-
+      }
+      if (text.length > 0) element.append(text);
+      return element;
+      }
   return (
     <div>
-      <ul id="sensorForm-errors" className="sensorForm-errors"></ul>
+        <ul id="addSensor-errors" className="addSensor-errors"></ul>
 
-      <form className="grid-form" id="sensorForm-form" name="sensorForm-form" onSubmit={handleFormSubmission}>
-        <label htmlFor="sensorForm-id">
-          Sensor ID <span className="required" title="Required">*</span>
-        </label>
-        <span>
-          <input id="sensorForm-id" name="id" value={sensorData.id} onChange={handleInputChangeEvent} />
-          <br />
-          <span id="sensorForm-id-error" className="sensorForm-errors error">
-            {sensorErrors.id}
+        <form className="grid-form" id="addSensor-form" name="addSensor-form" onSubmit={handleFormSubmit}>
+          <label htmlFor="addSensor-id">
+            Sensor  ID <span className="required" title="Required">*</span>
+          </label>
+          <span>
+            <input id="addSensor-id" name="id" value={formData.id}
+            onChange={handleInputChange} />
+            <br />
+            <span id="addSensor-id-error" className="addSensor-errors error">{formErrors.id}</span>
           </span>
-        </span>
 
-        <label htmlFor="sensorForm-sensorTypeId">
-          Sensor Type ID <span className="required" title="Required">*</span>
-        </label>
-        <span>
-          <input id="sensorForm-sensorTypeId" name="sensorTypeId" value={sensorData.sensorTypeId} onChange={handleInputChangeEvent} />
-          <br />
-          <span id="sensorForm-sensorTypeId-error" className="sensorForm-errors error">
-            {sensorErrors.sensorTypeId}
+          <label htmlFor="addSensor-sensorTypeId">
+            Sensor Type ID <span className="required" title="Required">*</span>
+          </label>
+          <span>
+            <input id="addSensor-sensorTypeId" name="sensorTypeId" value={formData.sensorTypeId}
+            onChange={handleInputChange}/>
+            <br />
+            <span id="addSensor-sensorTypeId-error" className="addSensor-errors error">{formErrors.sensorTypeId}</span>
           </span>
-        </span>
 
-        <label htmlFor="sensorForm-period">
-          Period <span className="required" title="Required">*</span>
-        </label>
-        <span>
-          <input id="sensorForm-period" name="period" type="number" value={sensorData.period} onChange={handleInputChangeEvent} />
-          <br />
-          <span id="sensorForm-period-error" className="sensorForm-errors error">
-            {sensorErrors.period}
+          <label htmlFor="addSensor-period">
+            Period <span className="required" title="Required">*</span>
+          </label>
+          <span>
+            <input id="addSensor-period" name="period" type='number' value={formData.period}
+            onChange={handleInputChange}/>
+            <br />
+            <span id="addSensor-period-error" className="addSensor-errors error">{formErrors.period}</span>
           </span>
-        </span>
 
-        <label htmlFor="sensorForm-min">
-          Min Expected <span className="required" title="Required">*</span>
-        </label>
-        <span>
-          <input id="sensorForm-min" name="min" type="number" value={sensorData.min} onChange={handleInputChangeEvent} />
-          <br />
-          <span id="sensorForm-min-error" className="sensorForm-errors error">
-            {sensorErrors.min}
+          <label htmlFor="addSensor-min">
+            Min Expected <span className="required" title="Required">*</span>
+          </label>
+          <span>
+            <input id= "addSensor-min" name="min" type='number' value={formData.min}
+            onChange={handleInputChange} />
+            <br />
+            <span id="addSensor-min-error" className="addSensor-errors error">{formErrors.min}</span>
           </span>
-        </span>
 
-        <label htmlFor="sensorForm-max">
-          Max Expected <span className="required" title="Required">*</span>
-        </label>
-        <span>
-          <input id="sensorForm-max" name="max" type="number" value={sensorData.max} onChange={handleInputChangeEvent} />
-          <br />
-          <span id="sensorForm-max-error" className="sensorForm-errors error">
-            {sensorErrors.max}
+          <label htmlFor="addSensor-max">
+            Max Expected <span className="required" title="Required">*</span>
+          </label>
+          <span>
+            <input id="addSensor-max" name="max" type='number' value={formData.max}
+            onChange={handleInputChange}/>
+            <br />
+            <span id="addSensor-max-error" className="addSensor-errors error">{formErrors.max}</span>
           </span>
-        </span>
-        <span></span>
-        <button>Add Sensor</button>
-      </form>
-    </div>
+          <span></span>
+           <button>Add Sensor</button>
+        </form>
+        <dl><FormResult resultContainerId='addSensor' result={formResult} /></dl>
+      </div>
   );
 }
 
-export default SensorFormComponent;
+export default AddSensorForm;

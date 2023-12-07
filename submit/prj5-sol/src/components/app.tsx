@@ -3,7 +3,10 @@ import React from 'react';
 import { makeSensorsWs, SensorsWs } from '../lib/sensors-ws.js';
 
 import Tab from './tab.js';
-import AddSensor from './AddSensor.js';
+import  AddSensorType from './AddSensorType.js'; 
+// import  FindSensorType from './FindSensorType.js'; 
+import  AddSensor from './AddSensor.js'; 
+// import  FindSensor from './FindSensor.js'; 
 
 import SENSOR_FIELDS from './sensor-fields.js';
 
@@ -19,16 +22,14 @@ export default function App(props: AppProps) {
     <div className="tabs">
       <Tab id="addSensorType" label="Add Sensor Type" 
            isSelected={selectedId === 'addSensorType'}
-           select={() => {
-            selectTab('addSensorType');}}>
-            {/* <AddElement ws={ws} /> */}
+           select={selectTab}>
+            <AddSensorType ws={ws}/>
          {/* TODO Add Sensor Type Component */}
       </Tab>
       <Tab id="addSensor" label="Add Sensor" 
            isSelected={selectedId === 'addSensor'}
-           select={() => selectTab('addSensor')}>
-          <AddSensor ws={ws}/>
-
+           select={selectTab}>
+            <AddSensor ws={ws} />
          {/* TODO Add Sensor Component */}
       </Tab>
       <Tab id="findSensorTypes" label="Find Sensor Types" 
