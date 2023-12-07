@@ -2,10 +2,8 @@ import React, { useEffect } from 'react';
 import { useState } from "react";
 import { Errors } from 'cs544-js-utils';
 import { PagedValues, makeSensorsWs, SensorsWs } from '../lib/sensors-ws';
-import SENSOR_DEFS, { FieldDef } from './sensor-fields';
-import FormResult from './FormResult';
-import SensorResults from './SensorResults';
-import Scroll from './Scoll';
+// import SENSOR_DEFS, { FieldDef } from './sensor-fields';
+import FindWithScroll from './FindWithScroll';
 
 
 type AppProps = {
@@ -55,6 +53,8 @@ function FindSensorTypeForm(props: AppProps) {
     quantity: '',
     unit: '',
   });
+
+  
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setFormData((prevData) => ({
@@ -192,9 +192,8 @@ return element;
           <span></span>
            <button>Find Sensor Type</button>
         </form>
-        <Scroll prevLink={resultLinks.prev} nextLink={resultLinks.next} onPrevClick={handlePrevClick} onNextClick={handleNextClick} />
-        {submitted && <SensorResults results={results} />}
-        <Scroll prevLink={resultLinks.prev} nextLink={resultLinks.next} onPrevClick={handlePrevClick} onNextClick={handleNextClick} />
+        {submitted && <FindWithScroll results={results} prevLink={resultLinks.prev} nextLink={resultLinks.next} onPrevClick={handlePrevClick}
+        onNextClick={handleNextClick}/>}
       </div>
   );
 }

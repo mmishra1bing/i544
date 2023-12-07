@@ -3,9 +3,7 @@ import { useState } from "react";
 import { Errors } from 'cs544-js-utils';
 import { PagedValues, makeSensorsWs, SensorsWs } from '../lib/sensors-ws';
 import SENSOR_DEFS, { FieldDef } from './sensor-fields';
-import FormResult from './FormResult';
-import Scroll from './Scoll';
-import SensorResults from './SensorResults';
+import FindWithScroll from './FindWithScroll';
 
 
 
@@ -151,9 +149,8 @@ return element;
       <span></span>
        <button>Find Sensors</button>
     </form>
-      <Scroll prevLink={resultLinks.prev} nextLink={resultLinks.next} onPrevClick={handlePrevClick} onNextClick={handleNextClick} />
-       {submitted && <SensorResults results={results} />}
-       <Scroll prevLink={resultLinks.prev} nextLink={resultLinks.next} onPrevClick={handlePrevClick} onNextClick={handleNextClick} />
+    {submitted && <FindWithScroll results={results} prevLink={resultLinks.prev} nextLink={resultLinks.next} onPrevClick={handlePrevClick}
+        onNextClick={handleNextClick}/>}
   </div>
   );
 }
