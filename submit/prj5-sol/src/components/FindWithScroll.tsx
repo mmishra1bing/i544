@@ -64,7 +64,9 @@ const FindWithScroll: React.FC<FindWithScrollProps> = ({
       <Scroll prevLink={prevLink} nextLink={nextLink} onPrevClick={onPrevClick} onNextClick={onNextClick} />
       <SensorResults results={results} />
       <Scroll prevLink={prevLink} nextLink={nextLink} onPrevClick={onPrevClick} onNextClick={onNextClick} />
+      <span></span>
     </div>
+    
   );
 };
 
